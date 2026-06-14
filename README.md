@@ -1,4 +1,4 @@
-# Ocean11 — HarborWatch AI
+# Ocean11 — Intelligence for Oceans. Protection for Humanity 
 
 **Autonomous maritime intelligence that detects seafarer abandonment, humanitarian crises, and logistics risk before they become global emergencies.**
 
