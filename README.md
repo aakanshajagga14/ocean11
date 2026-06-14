@@ -73,15 +73,6 @@ The pipeline produces either a **full humanitarian escalation package** (ITF con
 - **Reports** — AI-generated escalation packages with urgency levels
 - **Alerts** — filterable feed of high-risk vessels with one-click investigate
 
-### Demo Crisis Scenarios
-Three simulated vessels are always on the map for reliable demo/judging:
-
-| MMSI | Vessel | Risk | Situation |
-|------|--------|------|-----------|
-| SIM001 | MV Esperanza | 91 | 47 days stationary off Oman |
-| SIM002 | MV Fortuna Star | 78 | AIS dark 72h, Red Sea |
-| SIM003 | MV Konstantinos | 95 | Crew complaint, owner unreachable |
-
 Click any vessel → **START INVESTIGATION** → watch agents fire sequentially.
 
 ---
@@ -275,7 +266,3 @@ Open **http://localhost:5173**
 | `VITE_MAPTILER_KEY` | No | MapTiler key for dark map style |
 
 ---
-
-## Team
-
-Ocean11 — HarborWatch AI · Maritime intelligence for the crews the world forgot.
