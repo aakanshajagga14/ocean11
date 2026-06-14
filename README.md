@@ -255,74 +255,6 @@ Open **http://localhost:5173**
 
 ---
 
-## API Reference
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Health check |
-| `GET` | `/vessels` | List vessels (filterable by risk level) |
-| `GET` | `/vessels/snapshot` | Map snapshot (top 300 vessels) |
-| `GET` | `/vessels/{mmsi}` | Vessel detail + agent events |
-| `GET` | `/vessels/{mmsi}/history` | Investigation memory |
-| `GET` | `/vessels/{mmsi}/trail` | Position history |
-| `POST` | `/vessels/{mmsi}/investigate` | Trigger 5-agent pipeline |
-| `GET` | `/investigations/{id}` | Pipeline state |
-| `GET` | `/reports/{mmsi}` | Latest escalation report |
-| `GET` | `/stats` | Dashboard statistics |
-| `GET` | `/fleets` | Fleet-level pattern signals |
-| `WS` | `/ws/feed` | Real-time event stream |
-
-### WebSocket Events
-`vessels_batch` · `vessel_update` · `agent_event` · `stats_update` · `alert` · `report_ready` · `fleet_alert` · `vessel_ping`
-
----
-
-## Verification
-
-```bash
-# Pipeline scenario tests (3 crisis vessels + 1 normal vessel)
-cd backend
-python scripts/verify_pipeline.py
-
-# Integration tests
-pytest tests/test_integration.py -v
-```
-
-Expected outcomes:
-- Simulated crisis vessels (SIM001–003) → `requires_escalation: true`, urgency `URGENT` or `IMMEDIATE`
-- Normal low-risk vessel → `requires_escalation: false` with `no_action_reason`
-
----
-
-## Deployment
-
-### Frontend (Vercel)
-```bash
-cd frontend
-vercel deploy --prod
-```
-
-Set environment variables in Vercel:
-```
-VITE_API_URL=https://your-railway-backend.up.railway.app
-VITE_WS_URL=wss://your-railway-backend.up.railway.app
-```
-
-### Backend (Railway)
-```bash
-cd backend
-railway up
-```
-
-Set environment variables in Railway:
-```
-GEMINI_API_KEY=...
-AISSTREAM_API_KEY=...
-FRONTEND_URL=https://your-vercel-app.vercel.app
-```
-
----
-
 ## Environment Variables
 
 ### Backend (`backend/.env`)
@@ -341,12 +273,6 @@ FRONTEND_URL=https://your-vercel-app.vercel.app
 | `VITE_API_URL` | Yes | Backend REST URL |
 | `VITE_WS_URL` | Yes | Backend WebSocket URL |
 | `VITE_MAPTILER_KEY` | No | MapTiler key for dark map style |
-
----
-
-## License
-
-Built for hackathon demonstration. Not intended for production maritime operations without additional validation, authentication, and data governance.
 
 ---
 
