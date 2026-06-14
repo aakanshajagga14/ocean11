@@ -1,9 +1,10 @@
+import asyncio
 import time
 import uuid
 from datetime import datetime
 
 from agents import context
-from agents.base import INVESTIGATION_TOOLS, call_gemini
+from agents.base import INVESTIGATION_TOOLS, AGENT_MAX_TOKENS, call_gemini
 from data.vessel_registry import registry
 from models import AgentEvent, InvestigationState
 
@@ -20,6 +21,33 @@ Return JSON:
   "reasoning": "detailed reasoning trace"
 }
 If no external news is available, use in-memory vessel data and set web_search_status accordingly."""
+
+
+def _fallback_evidence(vessel, enrichment, web_error: str) -> tuple[list[str], list[str], str, str]:
+    findings: list[str] = []
+    if enrichment.owner_notes:
+        findings.append(enrichment.owner_notes)
+    if enrichment.prior_itf_incident:
+        findings.append(f"Prior ITF incident on record for {vessel.owner}")
+    if enrichment.owner_dispute_history:
+        findings.append(f"Owner dispute history: {vessel.owner}")
+    if enrichment.crew_complaint_filed:
+        findings.append("Active crew complaint filed with ITF")
+    if enrichment.insurance_lapsed:
+        findings.append("Vessel insurance reported lapsed")
+    if vessel.days_stationary >= 30:
+        findings.append(f"No port call in {vessel.days_stationary}+ days")
+    if vessel.ais_gap_hours >= 24:
+        findings.append(f"AIS dark period: {vessel.ais_gap_hours:.1f} hours")
+    if not findings:
+        findings.append(
+            f"Vessel {vessel.name} operating normally — speed {vessel.speed} kn, "
+            f"recent AIS signal, no enrichment flags"
+        )
+    citations = ["In-memory vessel registry", "AIS telemetry"]
+    summary = f"Evidence from {len(findings)} sources (web_search_unavailable)"
+    reasoning = f"Web search unavailable ({web_error}). Used in-memory enrichment data."
+    return findings, citations, summary, reasoning
 
 
 async def investigation_agent(state: InvestigationState) -> dict:
@@ -39,7 +67,7 @@ async def investigation_agent(state: InvestigationState) -> dict:
         reasoning="",
         duration_ms=0,
     )
-    state["events"].append(running)
+    await context.append_state_event(state, running)
     context.append_event(vessel.mmsi, running)
     await context.broadcast({"type": "agent_event", "payload": running.model_dump(mode="json")})
 
@@ -57,9 +85,16 @@ Last port: {vessel.last_port}, Destination: {vessel.destination}"""
     web_status = "ok"
     summary = "Evidence package compiled"
     reasoning = ""
+    event_status = "complete"
 
     try:
-        result = await call_gemini(SYSTEM_PROMPT, user_prompt, tools=INVESTIGATION_TOOLS)
+        result = await call_gemini(
+            SYSTEM_PROMPT,
+            user_prompt,
+            tools=INVESTIGATION_TOOLS,
+            max_tokens=AGENT_MAX_TOKENS["investigation"],
+            agent_name="investigation",
+        )
         findings = result.get("findings", [])
         citations = result.get("source_citations", [])
         web_status = result.get("web_search_status", "ok")
@@ -67,31 +102,16 @@ Last port: {vessel.last_port}, Destination: {vessel.destination}"""
         reasoning = result.get("reasoning", str(result))
         if not findings:
             raise ValueError("Empty findings from web search")
+    except asyncio.TimeoutError:
+        web_status = "web_search_unavailable"
+        findings, citations, summary, reasoning = _fallback_evidence(
+            vessel, enrichment, "agent timed out after 15s"
+        )
+        summary = "Agent timed out — proceeding with available data"
+        event_status = "timeout"
     except Exception as e:
         web_status = "web_search_unavailable"
-        findings = []
-        if enrichment.owner_notes:
-            findings.append(enrichment.owner_notes)
-        if enrichment.prior_itf_incident:
-            findings.append(f"Prior ITF incident on record for {vessel.owner}")
-        if enrichment.owner_dispute_history:
-            findings.append(f"Owner dispute history: {vessel.owner}")
-        if enrichment.crew_complaint_filed:
-            findings.append("Active crew complaint filed with ITF")
-        if enrichment.insurance_lapsed:
-            findings.append("Vessel insurance reported lapsed")
-        if vessel.days_stationary >= 30:
-            findings.append(f"No port call in {vessel.days_stationary}+ days")
-        if vessel.ais_gap_hours >= 24:
-            findings.append(f"AIS dark period: {vessel.ais_gap_hours:.1f} hours")
-        if not findings:
-            findings.append(
-                f"Vessel {vessel.name} operating normally — speed {vessel.speed} kn, "
-                f"recent AIS signal, no enrichment flags"
-            )
-        citations = ["In-memory vessel registry", "AIS telemetry"]
-        summary = f"Evidence from {len(findings)} sources (web_search_unavailable)"
-        reasoning = f"Web search unavailable ({e}). Used in-memory enrichment data."
+        findings, citations, summary, reasoning = _fallback_evidence(vessel, enrichment, str(e))
 
     duration = int((time.time() - start) * 1000)
     complete = AgentEvent(
@@ -99,14 +119,13 @@ Last port: {vessel.last_port}, Destination: {vessel.destination}"""
         vessel_mmsi=vessel.mmsi,
         agent_name="investigation",
         timestamp=datetime.utcnow(),
-        status="complete",
+        status=event_status,
         input_summary=running.input_summary,
         output_summary=summary,
         reasoning=reasoning,
         duration_ms=duration,
     )
-    state["events"] = [e for e in state["events"] if e.event_id != event_id]
-    state["events"].append(complete)
+    await context.finalize_state_event(state, event_id, complete)
     context.append_event(vessel.mmsi, complete)
     await context.broadcast({"type": "agent_event", "payload": complete.model_dump(mode="json")})
 

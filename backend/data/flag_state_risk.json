@@ -1,0 +1,122 @@
+[
+  {
+    "flag_state": "Comoros",
+    "abandonment_rate_per_1000_vessels": 18.4,
+    "risk_tier": "CRITICAL",
+    "vessel_count_global": 142
+  },
+  {
+    "flag_state": "Palau",
+    "abandonment_rate_per_1000_vessels": 15.2,
+    "risk_tier": "CRITICAL",
+    "vessel_count_global": 98
+  },
+  {
+    "flag_state": "Togo",
+    "abandonment_rate_per_1000_vessels": 14.8,
+    "risk_tier": "CRITICAL",
+    "vessel_count_global": 210
+  },
+  {
+    "flag_state": "Cambodia",
+    "abandonment_rate_per_1000_vessels": 12.1,
+    "risk_tier": "HIGH",
+    "vessel_count_global": 185
+  },
+  {
+    "flag_state": "Tanzania",
+    "abandonment_rate_per_1000_vessels": 11.6,
+    "risk_tier": "HIGH",
+    "vessel_count_global": 167
+  },
+  {
+    "flag_state": "Sierra Leone",
+    "abandonment_rate_per_1000_vessels": 10.3,
+    "risk_tier": "HIGH",
+    "vessel_count_global": 124
+  },
+  {
+    "flag_state": "Tuvalu",
+    "abandonment_rate_per_1000_vessels": 9.7,
+    "risk_tier": "HIGH",
+    "vessel_count_global": 88
+  },
+  {
+    "flag_state": "Belize",
+    "abandonment_rate_per_1000_vessels": 7.2,
+    "risk_tier": "MEDIUM",
+    "vessel_count_global": 312
+  },
+  {
+    "flag_state": "Panama",
+    "abandonment_rate_per_1000_vessels": 4.8,
+    "risk_tier": "MEDIUM",
+    "vessel_count_global": 8420
+  },
+  {
+    "flag_state": "Liberia",
+    "abandonment_rate_per_1000_vessels": 3.9,
+    "risk_tier": "MEDIUM",
+    "vessel_count_global": 4650
+  },
+  {
+    "flag_state": "Marshall Islands",
+    "abandonment_rate_per_1000_vessels": 3.5,
+    "risk_tier": "MEDIUM",
+    "vessel_count_global": 3890
+  },
+  {
+    "flag_state": "Malta",
+    "abandonment_rate_per_1000_vessels": 2.1,
+    "risk_tier": "LOW",
+    "vessel_count_global": 2780
+  },
+  {
+    "flag_state": "Hong Kong",
+    "abandonment_rate_per_1000_vessels": 1.4,
+    "risk_tier": "LOW",
+    "vessel_count_global": 1920
+  },
+  {
+    "flag_state": "Singapore",
+    "abandonment_rate_per_1000_vessels": 0.6,
+    "risk_tier": "LOW",
+    "vessel_count_global": 3240
+  },
+  {
+    "flag_state": "Norway",
+    "abandonment_rate_per_1000_vessels": 0.3,
+    "risk_tier": "LOW",
+    "vessel_count_global": 1580
+  },
+  {
+    "flag_state": "Japan",
+    "abandonment_rate_per_1000_vessels": 0.2,
+    "risk_tier": "LOW",
+    "vessel_count_global": 4120
+  },
+  {
+    "flag_state": "United Kingdom",
+    "abandonment_rate_per_1000_vessels": 0.4,
+    "risk_tier": "LOW",
+    "vessel_count_global": 890
+  },
+  {
+    "flag_state": "Greece",
+    "abandonment_rate_per_1000_vessels": 1.8,
+    "risk_tier": "LOW",
+    "vessel_count_global": 2340
+  },
+  {
+    "flag_state": "Mongolia",
+    "abandonment_rate_per_1000_vessels": 8.9,
+    "risk_tier": "HIGH",
+    "vessel_count_global": 156
+  },
+  {
+    "flag_state": "Bolivia",
+    "abandonment_rate_per_1000_vessels": 6.5,
+    "risk_tier": "MEDIUM",
+    "vessel_count_global": 74
+  }
+]

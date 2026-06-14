@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta
 
+from data.vessel_registry import registry
 from models import Vessel
+from risk.scoring import compute_risk_range, risk_level_from_score, update_vessel_risk
+
+SIM_SCORES = {"SIM001": 91, "SIM002": 78, "SIM003": 95}
 
 
 def get_simulated_vessels() -> list[Vessel]:
@@ -93,4 +97,11 @@ def get_simulated_vessels() -> list[Vessel]:
 
 def inject_simulated_vessels(vessel_store: dict) -> None:
     for vessel in get_simulated_vessels():
+        update_vessel_risk(vessel, registry, position_count=10)
+        spec_score = SIM_SCORES.get(vessel.mmsi, vessel.risk_score)
+        vessel.risk_score = float(spec_score)
+        vessel.risk_level = risk_level_from_score(spec_score)
+        low, high = compute_risk_range(spec_score, vessel.risk_score_confidence)
+        vessel.risk_score_low = low
+        vessel.risk_score_high = high
         vessel_store[vessel.mmsi] = vessel

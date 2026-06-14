@@ -1,9 +1,10 @@
+import asyncio
 import time
 import uuid
 from datetime import datetime
 
 from agents import context
-from agents.base import call_gemini
+from agents.base import AGENT_MAX_TOKENS, call_gemini
 from data.vessel_registry import registry
 from models import AgentEvent, EscalationReport, InvestigationState
 
@@ -113,7 +114,7 @@ async def escalation_agent(state: InvestigationState) -> dict:
         reasoning="",
         duration_ms=0,
     )
-    state["events"].append(running)
+    await context.append_state_event(state, running)
     context.append_event(vessel.mmsi, running)
     await context.broadcast({"type": "agent_event", "payload": running.model_dump(mode="json")})
 
@@ -124,11 +125,22 @@ Evidence: {state.get('evidence', [])}
 Crew size estimate: {enrichment.crew_size}, Nationalities: {enrichment.crew_nationalities}
 Days unpaid: {enrichment.days_unpaid or vessel.days_stationary}"""
 
+    event_status = "complete"
     try:
-        result = await call_gemini(SYSTEM_PROMPT, user_prompt)
+        result = await call_gemini(
+            SYSTEM_PROMPT,
+            user_prompt,
+            max_tokens=AGENT_MAX_TOKENS["escalation"],
+            agent_name="escalation",
+        )
         summary = result.get("summary", "Escalation report generated")
         reasoning = result.get("reasoning", str(result))
         report_data = {k: v for k, v in result.items() if k not in ("summary", "reasoning")}
+    except asyncio.TimeoutError:
+        summary = "Agent timed out — proceeding with available data"
+        reasoning = "Escalation agent timed out after 15s; generated rule-based report."
+        report_data = {}
+        event_status = "timeout"
     except Exception as e:
         summary = "Escalation report generated (fallback)"
         reasoning = f"Fallback report generation: {e}"
@@ -186,14 +198,13 @@ Days unpaid: {enrichment.days_unpaid or vessel.days_stationary}"""
         vessel_mmsi=vessel.mmsi,
         agent_name="escalation",
         timestamp=datetime.utcnow(),
-        status="complete",
+        status=event_status,
         input_summary=running.input_summary,
         output_summary=output_summary,
         reasoning=reasoning,
         duration_ms=duration,
     )
-    state["events"] = [e for e in state["events"] if e.event_id != event_id]
-    state["events"].append(complete)
+    await context.finalize_state_event(state, event_id, complete)
     context.append_event(vessel.mmsi, complete)
     await context.broadcast({"type": "agent_event", "payload": complete.model_dump(mode="json")})
 

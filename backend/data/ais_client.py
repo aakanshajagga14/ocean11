@@ -58,11 +58,13 @@ class AISClient:
         self,
         vessel_store: dict[str, Vessel],
         on_vessel_update: Callable | None = None,
+        on_vessel_ping: Callable | None = None,
         on_alert: Callable | None = None,
         position_history: dict[str, list[tuple[float, float]]] | None = None,
     ) -> None:
         self.vessels = vessel_store
         self.on_vessel_update = on_vessel_update
+        self.on_vessel_ping = on_vessel_ping
         self.on_alert = on_alert
         self.position_history = position_history or {}
         self.state = ConnectionState.DISCONNECTED
@@ -162,17 +164,21 @@ class AISClient:
                 abandonment_confirmed=False,
             )
 
-            update_vessel_risk(vessel, registry)
-
-            if mmsi not in self.vessels:
-                self._maybe_evict()
-            self.vessels[mmsi] = vessel
-
             trail = self.position_history.setdefault(mmsi, [])
             if not trail or (trail[-1][0] != lon or trail[-1][1] != lat):
                 trail.append((lon, lat))
                 if len(trail) > 10:
                     self.position_history[mmsi] = trail[-10:]
+            position_count = len(self.position_history.get(mmsi, []))
+
+            update_vessel_risk(vessel, registry, position_count=position_count)
+
+            if mmsi not in self.vessels:
+                self._maybe_evict()
+            self.vessels[mmsi] = vessel
+
+            if self.on_vessel_ping:
+                asyncio.create_task(self.on_vessel_ping(mmsi))
 
             prev_level = self._previous_risk_levels.get(mmsi)
             if (
@@ -251,7 +257,8 @@ class AISClient:
                 if abs(vessel.ais_gap_hours - gap) > 0.01:
                     vessel.ais_gap_hours = gap
                     prev_level = vessel.risk_level
-                    update_vessel_risk(vessel, registry)
+                    pos_count = len(self.position_history.get(mmsi, []))
+                    update_vessel_risk(vessel, registry, position_count=pos_count)
                     if self.on_vessel_update:
                         await self.on_vessel_update(mmsi, vessel)
                     if (

@@ -1,9 +1,10 @@
+import asyncio
 import time
 import uuid
 from datetime import datetime
 
 from agents import context
-from agents.base import call_gemini
+from agents.base import AGENT_MAX_TOKENS, call_gemini
 from models import AgentEvent, InvestigationState
 
 SYSTEM_PROMPT = """You are a maritime legal/regulatory analyst for Ocean11.
@@ -27,8 +28,7 @@ Return JSON:
 
 async def compliance_agent(state: InvestigationState) -> dict:
     vessel = state["vessel"]
-    risk_assessment = state.get("risk_assessment") or {}
-    risk_score = risk_assessment.get("risk_score", int(vessel.risk_score))
+    risk_score = int(vessel.risk_score)
     start = time.time()
     event_id = str(uuid.uuid4())
 
@@ -43,10 +43,11 @@ async def compliance_agent(state: InvestigationState) -> dict:
         reasoning="",
         duration_ms=0,
     )
-    state["events"].append(running)
+    await context.append_state_event(state, running)
     context.append_event(vessel.mmsi, running)
     await context.broadcast({"type": "agent_event", "payload": running.model_dump(mode="json")})
 
+    event_status = "complete"
     if risk_score < 70:
         findings = {
             "applicable_conventions": [],
@@ -61,12 +62,17 @@ async def compliance_agent(state: InvestigationState) -> dict:
         )
     else:
         user_prompt = f"""Vessel: {vessel.name}, Flag: {vessel.flag_state}
-Risk score: {risk_score}, Risk level: {risk_assessment.get('risk_level')}
+Risk score: {risk_score}
 Evidence: {state.get('evidence', [])}
 Anomaly signals: {state.get('anomaly_signals', [])}"""
 
         try:
-            result = await call_gemini(SYSTEM_PROMPT, user_prompt)
+            result = await call_gemini(
+                SYSTEM_PROMPT,
+                user_prompt,
+                max_tokens=AGENT_MAX_TOKENS["compliance"],
+                agent_name="compliance",
+            )
             findings = {
                 "applicable_conventions": result.get("applicable_conventions", ["MLC 2006", "UNCLOS Article 98"]),
                 "flag_state_obligations": result.get("flag_state_obligations", ""),
@@ -75,6 +81,16 @@ Anomaly signals: {state.get('anomaly_signals', [])}"""
             }
             summary = result.get("summary", "Regulatory analysis complete")
             reasoning = result.get("reasoning", str(result))
+        except asyncio.TimeoutError:
+            findings = {
+                "applicable_conventions": ["MLC 2006", "UNCLOS Article 98"],
+                "flag_state_obligations": f"{vessel.flag_state} obligated to ensure crew welfare under MLC 2006",
+                "port_state_options": "Nearest port state may exercise port state control",
+                "regulatory_notes": "High-risk vessel — conventions apply",
+            }
+            summary = "Agent timed out — proceeding with available data"
+            reasoning = "Compliance agent timed out after 15s; applied default convention mapping."
+            event_status = "timeout"
         except Exception as e:
             findings = {
                 "applicable_conventions": ["MLC 2006", "UNCLOS Article 98"],
@@ -91,14 +107,13 @@ Anomaly signals: {state.get('anomaly_signals', [])}"""
         vessel_mmsi=vessel.mmsi,
         agent_name="compliance",
         timestamp=datetime.utcnow(),
-        status="complete",
+        status=event_status,
         input_summary=running.input_summary,
         output_summary=summary,
         reasoning=reasoning,
         duration_ms=duration,
     )
-    state["events"] = [e for e in state["events"] if e.event_id != event_id]
-    state["events"].append(complete)
+    await context.finalize_state_event(state, event_id, complete)
     context.append_event(vessel.mmsi, complete)
     await context.broadcast({"type": "agent_event", "payload": complete.model_dump(mode="json")})
 

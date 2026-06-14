@@ -12,10 +12,17 @@ body,
   height: 100%;
   margin: 0;
   background: #050a14;
-  color: #e2e8f0;
+  color: #d4e4fa;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .maplibregl-map {
   font-family: inherit;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

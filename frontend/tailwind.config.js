@@ -6,15 +6,16 @@ export default {
       colors: {
         ocean: {
           bg: '#050a14',
-          surface: '#0d1b2a',
-          card: '#112240',
-          border: '#1e3a5f',
-          accent: '#38bdf8',
-          primary: '#e2e8f0',
-          secondary: '#94a3b8',
+          nav: '#051424',
+          surface: '#0d1c2d',
+          card: '#122131',
+          border: '#584237',
+          accent: '#ffb690',
+          primary: '#d4e4fa',
+          muted: '#e0c0b1',
         },
         risk: {
-          critical: '#ef4444',
+          critical: '#ffb4ab',
           high: '#f97316',
           medium: '#eab308',
           low: '#22c55e',

@@ -1,19 +1,19 @@
-import { RISK_COLORS } from '../types';
 import type { Vessel } from '../types';
 
-interface Props {
-  level: Vessel['risk_level'];
-  score?: number;
-}
+export const RISK_COLORS: Record<Vessel['risk_level'], string> = {
+  LOW: '#22c55e',
+  MEDIUM: '#eab308',
+  HIGH: '#f97316',
+  CRITICAL: '#ef4444',
+};
 
-export function RiskBadge({ level, score }: Props) {
+export function RiskBadge({ level, score }: { level: Vessel['risk_level']; score: number }) {
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-      style={{ backgroundColor: `${RISK_COLORS[level]}22`, color: RISK_COLORS[level] }}
+      className="text-xs font-bold px-2 py-0.5 rounded"
+      style={{ color: RISK_COLORS[level], backgroundColor: `${RISK_COLORS[level]}22` }}
     >
-      {score !== undefined ? `${score}/100 ` : ''}
-      {level}
+      {score} · {level}
     </span>
   );
 }

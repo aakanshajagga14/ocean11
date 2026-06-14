@@ -1,6 +1,6 @@
+import asyncio
 import logging
 import uuid
-from typing import Any
 
 from langgraph.graph import END, StateGraph
 
@@ -22,12 +22,16 @@ async def _investigation_node(state: InvestigationState) -> dict:
     return await investigation_agent(state)
 
 
-async def _risk_node(state: InvestigationState) -> dict:
-    return await risk_agent(state)
-
-
-async def _compliance_node(state: InvestigationState) -> dict:
-    return await compliance_agent(state)
+async def _parallel_analysis_node(state: InvestigationState) -> dict:
+    """Risk + Compliance in parallel — both depend on investigation output only."""
+    risk_result, compliance_result = await asyncio.gather(
+        risk_agent(state),
+        compliance_agent(state),
+    )
+    merged: dict = {}
+    merged.update(risk_result or {})
+    merged.update(compliance_result or {})
+    return merged
 
 
 async def _escalation_node(state: InvestigationState) -> dict:
@@ -39,15 +43,13 @@ def build_pipeline():
 
     workflow.add_node("monitoring_node", _monitoring_node)
     workflow.add_node("investigation_node", _investigation_node)
-    workflow.add_node("risk_node", _risk_node)
-    workflow.add_node("compliance_node", _compliance_node)
+    workflow.add_node("analysis_node", _parallel_analysis_node)
     workflow.add_node("escalation_node", _escalation_node)
 
     workflow.set_entry_point("monitoring_node")
     workflow.add_edge("monitoring_node", "investigation_node")
-    workflow.add_edge("investigation_node", "risk_node")
-    workflow.add_edge("risk_node", "compliance_node")
-    workflow.add_edge("compliance_node", "escalation_node")
+    workflow.add_edge("investigation_node", "analysis_node")
+    workflow.add_edge("analysis_node", "escalation_node")
     workflow.add_edge("escalation_node", END)
 
     return workflow.compile()
@@ -75,8 +77,10 @@ async def run_pipeline(
     investigation_id: str,
     on_error=None,
     on_complete=None,
+    initial_state: InvestigationState | None = None,
 ) -> InvestigationState:
-    state = create_initial_state(vessel, investigation_id)
+    state = initial_state or create_initial_state(vessel, investigation_id)
+    state["vessel"] = vessel
     try:
         result = await pipeline.ainvoke(state)
         result["status"] = "complete"
@@ -99,5 +103,5 @@ async def start_investigation(
     investigation_id = str(uuid.uuid4())
     state = create_initial_state(vessel, investigation_id)
     investigations[investigation_id] = state
-    await coordinator.set_investigation_id(investigation_id)
+    await coordinator.set_investigation_id(vessel.mmsi, investigation_id)
     return investigation_id
