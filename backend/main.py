@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from agents import context
 from agents.pipeline import run_pipeline
-from config import PORT
+from config import FRONTEND_URL, PORT
 from data.ais_client import AISClient
 from data.flag_state_data import load_flag_state_risks
 from data.simulator import inject_simulated_vessels
@@ -298,9 +298,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Ocean11 — HarborWatch AI", lifespan=lifespan)
 
+_cors_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+if FRONTEND_URL:
+    _cors_origins.append(FRONTEND_URL.rstrip("/"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=_cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -314,14 +322,14 @@ async def root():
         "status": "running",
         "docs": "/docs",
         "health": "/health",
-        "frontend": "http://localhost:5173",
-        "message": "This is the API server. Open the UI at http://localhost:5173 (run: cd frontend && npm run dev).",
+        "frontend": FRONTEND_URL,
+        "message": f"This is the API server. Open the UI at {FRONTEND_URL}.",
     }
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "ocean11-backend"}
 
 
 @app.get("/vessels", response_model=list[Vessel])
@@ -437,9 +445,15 @@ async def websocket_feed(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         pass
+    except Exception as e:
+        logger.warning("WebSocket error: %s", e)
     finally:
         if websocket in ws_connections:
             ws_connections.remove(websocket)
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

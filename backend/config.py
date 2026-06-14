@@ -5,19 +5,25 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent / ".env")
 
-GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-AISSTREAM_API_KEY: str = os.getenv("AISSTREAM_API_KEY", "")
-PORT: int = int(os.getenv("PORT", "8000"))
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+AISSTREAM_API_KEY = os.getenv("AISSTREAM_API_KEY")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+PORT = int(os.getenv("PORT", "8000"))
 
-PIPELINE_THRESHOLD: int = 60
-COOLDOWN_SECONDS: int = 3600
-MAX_VESSELS: int = 500
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is required")
+if not AISSTREAM_API_KEY:
+    raise ValueError("AISSTREAM_API_KEY environment variable is required")
 
-BACKOFF_BASE: int = 1
-BACKOFF_MAX: int = 60
-BACKOFF_FACTOR: int = 2
+PIPELINE_THRESHOLD: int = int(os.getenv("PIPELINE_THRESHOLD", "60"))
+COOLDOWN_SECONDS: int = int(os.getenv("COOLDOWN_SECONDS", "3600"))
+MAX_VESSELS: int = int(os.getenv("MAX_VESSELS", "500"))
 
-AIS_WS_URL: str = "wss://stream.aisstream.io/v0/stream"
+BACKOFF_BASE: int = int(os.getenv("BACKOFF_BASE", "1"))
+BACKOFF_MAX: int = int(os.getenv("BACKOFF_MAX", "60"))
+BACKOFF_FACTOR: int = int(os.getenv("BACKOFF_FACTOR", "2"))
+
+AIS_WS_URL: str = os.getenv("AIS_WS_URL", "wss://stream.aisstream.io/v0/stream")
 
 RISK_FACTORS: dict[str, int] = {
     "days_stationary_30_plus": 25,
@@ -32,4 +38,4 @@ RISK_FACTORS: dict[str, int] = {
     "insurance_lapsed": 35,
 }
 
-REGION_BOOST: int = 10
+REGION_BOOST: int = int(os.getenv("REGION_BOOST", "10"))

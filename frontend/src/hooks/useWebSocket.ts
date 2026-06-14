@@ -12,7 +12,11 @@ import type {
   WebSocketMessage,
 } from '../types';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+const WS_URL =
+  import.meta.env.VITE_WS_URL ||
+  (window.location.protocol === 'https:'
+    ? `wss://${window.location.host}`
+    : 'ws://localhost:8000');
 
 type BackendMessage =
   | { type: 'vessels_batch'; data: ApiVesselRaw[] }
