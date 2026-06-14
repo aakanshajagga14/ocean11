@@ -5,6 +5,8 @@
 [![Live Demo](https://img.shields.io/badge/demo-live-orange)](https://frontend-zeta-puce-30.vercel.app)
 [![Backend](https://img.shields.io/badge/API-Railway-blue)](https://railway-production-4f75.up.railway.app/health)
 
+
+!["C:\Users\Aakansha Jagga\Downloads\github_demo.gif"]
 ---
 
 ## Problem Statement
