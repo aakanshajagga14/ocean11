@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Import check
+        working-directory: backend
+        env:
+          GEMINI_API_KEY: ci-placeholder
+          AISSTREAM_API_KEY: ci-placeholder
+        run: python -c "import main; print('backend imports ok')"
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install and build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: https://railway-production-4f75.up.railway.app
+          VITE_WS_URL: wss://railway-production-4f75.up.railway.app
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
