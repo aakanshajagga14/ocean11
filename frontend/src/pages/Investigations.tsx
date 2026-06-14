@@ -3,7 +3,6 @@ import { StatsBar } from '../components/layout/StatsBar';
 import { AgentFeed } from '../components/agents/AgentFeed';
 import { InvestigationCard } from '../components/investigations/InvestigationCard';
 import { STITCH } from '../constants/stitchAssets';
-import { DISPLAY_ACTIVE_INVESTIGATIONS } from '../constants/vesselMockData';
 import { useAgentStore } from '../store/agentStore';
 import { useStatsStore } from '../store/statsStore';
 
@@ -21,7 +20,7 @@ export const Investigations = memo(function Investigations() {
     [investigations],
   );
 
-  const activeCount = active.length || DISPLAY_ACTIVE_INVESTIGATIONS;
+  const activeCount = active.length;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-[#051424]">

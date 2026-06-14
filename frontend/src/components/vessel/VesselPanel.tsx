@@ -5,7 +5,7 @@ import { STITCH } from '../../constants/stitchAssets';
 import { useAgentStore } from '../../store/agentStore';
 import { useVesselStore } from '../../store/vesselStore';
 import { useInvestigation } from '../../hooks/useInvestigation';
-import { STITCH_VESSEL } from '../../constants/vesselMockData';
+import { formatLastSignal, riskBadgeClass, riskLevelLabel } from '../../utils/formatters';
 import type { AgentEvent, InvestigateButtonState } from '../../types';
 import { VesselHistory } from './VesselHistory';
 import { VesselOverview } from './VesselOverview';
@@ -32,7 +32,7 @@ export const VesselPanel = memo(function VesselPanel() {
   );
   const [tab, setTab] = useState<Tab>('overview');
 
-  const displayName = vessel?.name?.toUpperCase() || STITCH_VESSEL.name;
+  const displayName = vessel?.name?.toUpperCase() ?? '';
   const { state, error, startInvestigation, retry } = useInvestigation(
     vessel?.mmsi ?? null,
     displayName,
@@ -54,17 +54,18 @@ export const VesselPanel = memo(function VesselPanel() {
 
   return (
     <aside className="w-[420px] shrink-0 h-full overflow-y-auto bg-[#051424] border-l border-solid border-[#584237] flex flex-col">
-      {/* Header — Stitch Vessel Focus */}
       <div className="pt-4 px-4 pb-0">
         <div className="flex items-start justify-between mb-4">
           <div>
             <span className="text-[#E0C0B1] text-[11px] font-bold block mb-1">Vessel Focus</span>
             <span className="text-[#D4E4FA] text-sm font-bold block mb-2">{displayName}</span>
             <div className="flex items-center gap-2">
-              <span className="bg-[#FFB4AB1A] py-0.5 px-2 rounded-sm text-[#FFB4AB] text-[11px] font-bold">
-                {STITCH_VESSEL.riskLabel}
+              <span
+                className={`py-0.5 px-2 rounded-sm text-[11px] font-bold ${riskBadgeClass(vessel.risk_level)}`}
+              >
+                {riskLevelLabel(vessel.risk_level)}
               </span>
-              <span className="text-[#E0C0B1] text-[11px]">{STITCH_VESSEL.imo}</span>
+              <span className="text-[#E0C0B1] text-[11px]">MMSI {vessel.mmsi}</span>
             </div>
           </div>
           <button type="button" onClick={clearSelection} className="text-[#E0C0B1] hover:opacity-80">
@@ -72,16 +73,14 @@ export const VesselPanel = memo(function VesselPanel() {
           </button>
         </div>
 
-        {/* Last photo strip */}
         <div
           className="flex items-center gap-2 py-2 px-3 mb-2 rounded-sm"
           style={{ background: 'linear-gradient(180deg, #051424, transparent)' }}
         >
           <img src={STITCH.camera} alt="" className="w-3.5 h-3.5 object-fill" />
-          <span className="text-[#E0C0B1] text-[11px]">{STITCH_VESSEL.lastPhoto}</span>
+          <span className="text-[#E0C0B1] text-[11px]">{formatLastSignal(vessel)}</span>
         </div>
 
-        {/* Tabs — Stitch style */}
         <div className="flex items-center bg-[#051424] py-[11px] mb-4 gap-6">
           {tabs.map(({ key, label }) => (
             <button
@@ -98,14 +97,12 @@ export const VesselPanel = memo(function VesselPanel() {
         </div>
       </div>
 
-      {/* Tab content */}
       <div className="px-4 flex-1 pb-4">
         {tab === 'overview' && <VesselOverview vessel={vessel} />}
-        {tab === 'voyage' && <VesselVoyage />}
-        {tab === 'history' && <VesselHistory />}
+        {tab === 'voyage' && <VesselVoyage vessel={vessel} />}
+        {tab === 'history' && <VesselHistory mmsi={vessel.mmsi} currentScore={vessel.risk_score} />}
       </div>
 
-      {/* Footer — Stitch buttons + agent progress when investigating */}
       <div className="flex flex-col items-start bg-[#122131] p-4 gap-4 border-t border-solid border-[#584237]">
         <InvestigateFooter
           state={state}

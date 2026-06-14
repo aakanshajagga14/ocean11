@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { STITCH } from '../../constants/stitchAssets';
-import { STITCH_VESSEL } from '../../constants/vesselMockData';
+import { buildConfidenceNote, buildRiskProjection } from '../../utils/formatters';
 import type { Vessel } from '../../types';
 
 interface VesselOverviewProps {
@@ -8,10 +8,10 @@ interface VesselOverviewProps {
 }
 
 export const VesselOverview = memo(function VesselOverview({ vessel }: VesselOverviewProps) {
-  const score = Math.round(vessel.risk_score) || STITCH_VESSEL.riskScore;
-  const low = Math.round(vessel.risk_score_range.low) || STITCH_VESSEL.rangeLow;
-  const high = Math.round(vessel.risk_score_range.high) || STITCH_VESSEL.rangeHigh;
-  const conf = vessel.risk_score_confidence || STITCH_VESSEL.confidence;
+  const score = Math.round(vessel.risk_score);
+  const low = Math.round(vessel.risk_score_range.low);
+  const high = Math.round(vessel.risk_score_range.high);
+  const conf = vessel.risk_score_confidence;
 
   return (
     <div className="flex flex-col items-start gap-4">
@@ -44,26 +44,24 @@ export const VesselOverview = memo(function VesselOverview({ vessel }: VesselOve
               <div className="bg-[#F97316] w-3 h-1.5 rounded-xl" />
             </div>
           </div>
-          <span className="text-[#E0C0B1] text-[11px]">{STITCH_VESSEL.confidenceNote}</span>
+          <span className="text-[#E0C0B1] text-[11px]">{buildConfidenceNote(vessel)}</span>
         </div>
       </div>
 
       <div className="flex flex-col items-start ml-3.5 gap-1 w-full">
         <span className="text-[#F97316] text-[11px] font-bold">System Projection</span>
-        <span className="text-[#D4E4FA] text-sm">{STITCH_VESSEL.projection}</span>
+        <span className="text-[#D4E4FA] text-sm">{buildRiskProjection(vessel)}</span>
       </div>
 
       <div className="flex items-center gap-3 w-full">
         <div className="flex flex-col shrink-0 items-start bg-[#122131] py-[9px] pl-[13px] pr-[65px] gap-1 rounded-sm border border-solid border-[#584237]">
           <span className="text-[#E0C0B1] text-[11px]">DAYS STATIONARY</span>
-          <span className="text-[#D4E4FA] text-xl font-bold">
-            {vessel.days_stationary || 47} days
-          </span>
+          <span className="text-[#D4E4FA] text-xl font-bold">{vessel.days_stationary} days</span>
         </div>
         <div className="flex flex-col shrink-0 items-start bg-[#122131] py-[9px] pl-[13px] pr-[117px] gap-1 rounded-sm border border-solid border-[#584237]">
           <span className="text-[#E0C0B1] text-[11px]">AIS GAP</span>
           <span className="text-[#D4E4FA] text-xl font-bold">
-            {Math.round(vessel.ais_gap_hours) || 72} h
+            {Math.round(vessel.ais_gap_hours)} h
           </span>
         </div>
       </div>

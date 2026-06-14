@@ -13,7 +13,7 @@ from config import FRONTEND_URL, PORT
 from data.ais_client import AISClient
 from data.flag_state_data import load_flag_state_risks
 from data.simulator import inject_simulated_vessels
-from data.vessel_memory import (
+from data.vessel_memory import ( to 
     compute_risk_trend,
     get_history,
     get_previous_summary,

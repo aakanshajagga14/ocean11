@@ -1,11 +1,5 @@
 import { memo } from 'react';
 import { STITCH } from '../../constants/stitchAssets';
-import {
-  DISPLAY_ACTIVE_ALERTS,
-  DISPLAY_ACTIVE_INVESTIGATIONS,
-  DISPLAY_HIGH_RISK,
-  DISPLAY_VESSELS_MONITORED,
-} from '../../constants/vesselMockData';
 import type { Stats } from '../../types';
 
 interface StatsBarProps {
@@ -66,22 +60,22 @@ export const StatsBar = memo(function StatsBar({ stats, variant = 'map' }: Stats
       <div className="flex items-center gap-4 px-6 py-4 bg-[#051424]">
         <InvStatCard
           label="ACTIVE INVESTIGATIONS"
-          value={stats.investigations_active || DISPLAY_ACTIVE_INVESTIGATIONS}
+          value={stats.investigations_active}
           iconSrc={STITCH.invStatActive}
         />
         <InvStatCard
           label="COMPLETED TODAY"
-          value={stats.investigations_completed_today || 12}
+          value={stats.investigations_completed_today}
           iconSrc={STITCH.invStatCompleted}
         />
         <InvStatCard
           label="AVG PIPELINE TIME"
-          value={`${stats.avg_pipeline_time_seconds || 47} s`}
+          value={stats.avg_pipeline_time_seconds ? `${stats.avg_pipeline_time_seconds} s` : '—'}
           iconSrc={STITCH.invStatPipeline}
         />
         <InvStatCard
           label="ESCALATIONS GENERATED"
-          value={stats.escalations_generated || 3}
+          value={stats.escalations_generated}
           iconSrc={STITCH.invStatEscalations}
         />
       </div>
@@ -89,17 +83,25 @@ export const StatsBar = memo(function StatsBar({ stats, variant = 'map' }: Stats
   }
 
   if (variant === 'alerts') {
+    const mediumCount = Math.max(
+      0,
+      stats.active_alerts - stats.critical_count - stats.high_risk_count,
+    );
     return (
       <div className="grid grid-cols-4 gap-4 px-6 py-4 bg-[#050A14]">
         {[
-          { label: 'TOTAL ALERTS', value: String(DISPLAY_ACTIVE_ALERTS).padStart(2, '0'), icon: null },
+          {
+            label: 'TOTAL ALERTS',
+            value: String(stats.active_alerts).padStart(2, '0'),
+            icon: null,
+          },
           {
             label: 'CRITICAL',
-            value: String(stats.critical_count || 2).padStart(2, '0'),
+            value: String(stats.critical_count).padStart(2, '0'),
             icon: STITCH.alertCriticalIcon,
           },
-          { label: 'HIGH', value: String(stats.high_risk_count || 3).padStart(2, '0'), icon: null },
-          { label: 'MEDIUM', value: '02', icon: null },
+          { label: 'HIGH', value: String(stats.high_risk_count).padStart(2, '0'), icon: null },
+          { label: 'MEDIUM', value: String(mediumCount).padStart(2, '0'), icon: null },
         ].map(({ label, value, icon }) => (
           <div
             key={label}
@@ -125,25 +127,25 @@ export const StatsBar = memo(function StatsBar({ stats, variant = 'map' }: Stats
       <MapStatCard
         iconSrc={STITCH.statVessels}
         iconBg="bg-[#3A4859]"
-        value={DISPLAY_VESSELS_MONITORED}
+        value={stats.total_monitored}
         label="Vessels Monitored"
       />
       <MapStatCard
         iconSrc={STITCH.statHighRisk}
         iconBg="bg-[#93000A4D]"
-        value={DISPLAY_HIGH_RISK}
+        value={stats.high_risk_count + stats.critical_count}
         label="High Risk Vessels"
       />
       <MapStatCard
         iconSrc={STITCH.statAlerts}
         iconBg="bg-[#F9731633]"
-        value={DISPLAY_ACTIVE_ALERTS}
+        value={stats.active_alerts}
         label="Active Alerts"
       />
       <MapStatCard
         iconSrc={STITCH.statInvestigations}
         iconBg="bg-[#273647]"
-        value={Math.max(DISPLAY_ACTIVE_INVESTIGATIONS, stats.investigations_active)}
+        value={stats.investigations_active}
         label="Active Investigations"
       />
     </div>

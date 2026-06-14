@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { ReportCard } from '../components/reports/ReportCard';
 import { ReportDetail } from '../components/reports/ReportDetail';
 import { STITCH } from '../constants/stitchAssets';
-import { STITCH_REPORT_STATS } from '../constants/vesselMockData';
 import { getAllReports } from '../api/reports';
 import { useAgentStore } from '../store/agentStore';
 import { useVesselStore } from '../store/vesselStore';
@@ -55,12 +54,7 @@ export const Reports = memo(function Reports() {
     const escalated = reports.filter((r) => r.requires_escalation).length;
     const monitored = reports.filter((r) => !r.requires_escalation && r.urgency_level === 'MONITOR').length;
     const noAction = reports.filter((r) => !r.requires_escalation && r.urgency_level === 'NONE').length;
-    return {
-      total: reports.length || STITCH_REPORT_STATS.total,
-      escalated: escalated || STITCH_REPORT_STATS.escalated,
-      monitored: monitored || STITCH_REPORT_STATS.monitored,
-      noAction: noAction || STITCH_REPORT_STATS.noAction,
-    };
+    return { total: reports.length, escalated, monitored, noAction };
   }, [reports]);
 
   return (
