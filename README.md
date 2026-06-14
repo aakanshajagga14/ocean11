@@ -6,8 +6,7 @@
 [![Backend](https://img.shields.io/badge/API-Railway-blue)](https://railway-production-4f75.up.railway.app/health)
 
 
-![til](C:\Users\Aakansha Jagga\Downloads\github_demo.gif)
-
+<img width="400" height="225" alt="Image" src="https://github.com/user-attachments/assets/151015a5-e393-48a6-90fd-a8a015c09e84" />
 ---
 
 ## Problem Statement
