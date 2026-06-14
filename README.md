@@ -186,34 +186,18 @@ Monitoring → Investigation → [Risk ∥ Compliance] → Escalation
 
 ```
 ocean11/
-├── backend/
-│   ├── main.py                 # FastAPI app, routes, WebSocket feed
-│   ├── models.py               # Pydantic schemas
-│   ├── config.py               # Environment configuration
-│   ├── Dockerfile              # Railway production container
-│   ├── agents/
-│   │   ├── pipeline.py         # LangGraph workflow
-│   │   ├── monitoring_agent.py
-│   │   ├── investigation_agent.py
-│   │   ├── risk_agent.py
-│   │   ├── compliance_agent.py
-│   │   └── escalation_agent.py
-│   ├── data/
-│   │   ├── ais_client.py       # Live AIS WebSocket client
-│   │   ├── simulator.py        # Crisis scenario injection
-│   │   └── vessel_registry.py  # Owner/flag enrichment
-│   └── risk/
-│       ├── scoring.py          # Risk score calculation
-│       ├── patterns.py         # Anomaly detection rules
-│       └── fleet_patterns.py   # Cross-vessel fleet signals
-└── frontend/
-    └── src/
-        ├── pages/              # LiveMap, Investigations, Reports, Alerts
-        ├── components/         # Map, vessel panel, agent feed, reports
-        ├── hooks/              # useWebSocket, useVessels, useInvestigation
-        ├── store/              # Zustand stores
-        └── api/                # REST client + mappers
+├── backend/                    # FastAPI + LangGraph agent pipeline
+├── frontend/                   # Production React dashboard
+├── stitch-exports/             # Original Stitch design exports (reference only)
+│   ├── page1/                  # Live Map mockup
+│   ├── page2/                  # Investigations mockup
+│   ├── page3/                  # Alerts mockup
+│   └── page4/                  # Reports mockup
+├── docs/                       # Internal planning & spec documents
+└── vercel.json                 # Root deploy config (builds frontend/)
 ```
+
+> **Design exports:** The `stitch-exports/` folder contains the original Stitch UI exports used as visual reference when building the dashboard. They are not part of the deployed application.
 
 ---
 
